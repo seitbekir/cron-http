@@ -42,6 +42,8 @@ async function autorize() {
 
     if (token && headerName) {
         headers[headerName] = token;
+
+        console.info(`Autorized with ${headerName}: ${token}`);
     }
 }
 
@@ -86,7 +88,7 @@ async function action(task) {
     } catch (err) {
         console.error(`Task [${task.title}] has failed with [${err.message}]`);
     } finally {
-        task.setNextTime(+Date.now());
+        task.setNextTime(Date.now());
         task.incExecuted();
 
         if (task.suicide) {
@@ -108,7 +110,7 @@ async function req(method, uri) {
             if (err) {
                 return reject(err);
             }
-            return resolve(res);
+            return resolve();
         });
     });
 }

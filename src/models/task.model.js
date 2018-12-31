@@ -135,8 +135,8 @@ class Task {
             const nextTime = dayjs(this.theTime).startOf('minute').valueOf();
             if (nextTime > Date.now()) {
                 this.nextTime = nextTime;
+                return;
             }
-            return;
         }
 
         this.nextTime = null;

@@ -129,6 +129,7 @@ async function update(req, res, next) {
         const { task } = req;
 
         task.setData(req.form);
+        task.setNextTime();
 
         await apiService.update(task);
 
