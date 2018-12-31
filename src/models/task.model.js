@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const dayjs = require('dayjs');
 const { v4: uuid } = require('uuid');
 const cronParser = require('cron-parser');
 const momentTimezone = require('moment-timezone');
@@ -13,8 +14,8 @@ class Task {
             throw new HttpError(500, 'Requires initial object');
         }
         if (
-            _.isEmpty(task.expression)
-            && _.isEmpty(task.uri)
+            (_.isEmpty(task.expression) && _.isNil(task.theTime))
+            || _.isEmpty(task.uri)
         ) {
             throw new HttpError(500, 'Required fields empty');
         }
@@ -32,7 +33,12 @@ class Task {
         /**
          * Time expression in CRON style
          */
-        this.expression = String(task.expression);
+        this.expression = String(task.expression || '') || null;
+
+        /**
+         * Time of when has to be executed
+         */
+        this.theTime = Number(task.theTime) || null;
         /**
          * uri has to be called with this method
          */
@@ -84,8 +90,11 @@ class Task {
             this.title = String(task.title);
         }
 
-        if (typeof task.expression === 'string') {
+        if (typeof task.expression === 'string' && _.isNil(task.theTime)) {
             this.expression = String(task.expression);
+        }
+        if (typeof task.theTime === 'number' && _.isNil(task.expression)) {
+            this.theTime = Number(task.theTime);
         }
         if (typeof task.method === 'string') {
             this.method = String(task.method);
@@ -113,9 +122,25 @@ class Task {
     }
 
     setNextTime(currentDate = Date.now()) {
-        const date = cronParser.parseExpression(this.expression, { currentDate, tz: this.timezone });
+        if (this.expression) {
+            const date = cronParser.parseExpression(this.expression, { currentDate, tz: this.timezone });
+            const nextTime = Number(date.next().toDate());
 
-        this.nextTime = Number(date.next().toDate());
+            if (Number.isNaN(nextTime) === false) {
+                this.nextTime = nextTime;
+                return;
+            }
+        }
+        if (this.theTime) {
+            const nextTime = dayjs(this.theTime).startOf('minute').valueOf();
+            if (nextTime > Date.now()) {
+                this.nextTime = nextTime;
+            }
+            return;
+        }
+
+        this.nextTime = null;
+        this.disabled = true;
     }
 
     /**
@@ -125,7 +150,9 @@ class Task {
         return {
             id: this.id,
             title: this.title,
-            expression: this.expression,
+            expression: this.expression || undefined,
+            theTime: this.theTime || undefined,
+            theTimeStr: this.theTime ? dayjs(this.theTime).format('YYYY-MM-DD HH:mm') : undefined,
             method: this.method,
             uri: this.uri,
             suicide: this.suicide,

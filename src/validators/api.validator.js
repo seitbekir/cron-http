@@ -31,10 +31,24 @@ async function create(req, res, next) {
             required,
             validator(_.isString).message('Set title as String'),
         ]);
-        val.field('expression', [
-            required,
-            validator(cronParser.parseExpression).message('Invalid CRON expression'),
-        ]);
+        if (req.body.expression) {
+            val.field('expression', [
+                def(null),
+                validator(cronParser.parseExpression).message('Invalid CRON expression'),
+            ]);
+        }
+        if (req.body.theTime) {
+            val.field('theTime', [
+                def(null),
+                validator(_.isInteger).message('Date timestamp has to be BigInt number'),
+                validator(value => value > Date.now()).message('Invalid Date timestamp in past'),
+            ]);
+        }
+        if (_.isNil(req.body.theTime) && _.isNil(req.body.expression)) {
+            val.field('when', [
+                required,
+            ]);
+        }
         val.field('method', [
             def('GET'),
             validator(method).message('Unsupported method'),
@@ -74,10 +88,24 @@ async function update(req, res, next) {
             def(null), // if not defined then data will not be updated
             validator(_.isString).message('Set title as String'),
         ]);
-        val.field('expression', [
-            def(null),
-            validator(cronParser.parseExpression).message('Invalid CRON expression'),
-        ]);
+        if (req.body.expression) {
+            val.field('expression', [
+                def(null),
+                validator(cronParser.parseExpression).message('Invalid CRON expression'),
+            ]);
+        }
+        if (req.body.theTime) {
+            val.field('theTime', [
+                def(null),
+                validator(_.isInteger).message('Date timestamp has to be BigInt number'),
+                validator(value => value > Date.now()).message('Invalid Date timestamp in past'),
+            ]);
+        }
+        if (_.isNil(req.body.theTime) && _.isNil(req.body.expression)) {
+            val.field('when', [
+                required,
+            ]);
+        }
         val.field('method', [
             def(null),
             validator(method).message('Unsupported method'),

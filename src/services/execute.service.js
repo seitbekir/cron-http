@@ -11,17 +11,39 @@ const apiService = require('./api.service');
 const Task = require('../models/task.model');
 
 /* Definition */
-const nextTick = dayjs()
-    .add(1, 'minute')
-    .startOf('minute')
-    .diff(dayjs())
-    .valueOf();
-setTimeout(() => runTasks(), nextTick);
-setTimeout(() => setInterval(runTasks, 60 * 1000), nextTick);
-
 module.exports = {
-    info() { console.info('Daemon activated'); },
+    start() {
+        start();
+
+        console.info('Daemon activated');
+    },
+    autorize,
 };
+
+const headers = {};
+
+/* Public */
+function start() {
+    const nextTick = dayjs()
+        .add(1, 'minute')
+        .startOf('minute')
+        .diff(dayjs())
+        .valueOf();
+
+    setTimeout(() => {
+        runTasks();
+        start();
+    }, nextTick);
+}
+
+async function autorize() {
+    const token = process.env.HEADER_TOKEN;
+    const headerName = process.env.HEADER_TOKEN_NAME;
+
+    if (token && headerName) {
+        headers[headerName] = token;
+    }
+}
 
 /* Private */
 async function runTasks() {
@@ -81,6 +103,7 @@ async function req(method, uri) {
         request({
             uri,
             method,
+            headers,
         }, (err, res) => {
             if (err) {
                 return reject(err);

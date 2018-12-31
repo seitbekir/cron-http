@@ -42,4 +42,7 @@ function onError(err) {
 }
 
 // Start Daemon
-require('./services/execute.service').info();
+const execute = require('./services/execute.service');
+
+execute.autorize();
+execute.start();
