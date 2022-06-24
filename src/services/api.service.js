@@ -2,7 +2,7 @@
  * this is the CRUD access to tasks we store in our system.
  * It is only hase a list of tasks. Not execution of them.
  */
-const Datastore = require('nedb-promise');
+const datastore = require('nedb-promises');
 
 const STORE_FILE = process.env.STORE_FILE || '/data/data.db';
 
@@ -20,7 +20,7 @@ module.exports = {
     remove,
 };
 
-const db = new Datastore({ filename: STORE_FILE, autoload: true });
+const db = datastore.create(STORE_FILE);
 
 /* Public */
 /**
